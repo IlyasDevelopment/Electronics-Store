@@ -1,0 +1,28 @@
+version: '3.9'
+
+services:
+
+  db:
+    container_name: store_psql_db
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    env_file:
+      - ./app/.env
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+
+  app:
+    container_name: store_app
+    build: ./app
+    command: bash -c 'uvicorn main:app --host 0.0.0.0 --port 8000 --reload'
+    restart: always
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db

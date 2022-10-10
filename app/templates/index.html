@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}
+    <title>Electronics Store</title>
+{% endblock %}
+
+{% block search %}
+    <style type="text/css">
+       input[type="radio"] {margin: 0 5px};
+    </style>
+    <p style="font-size: 22px;">What are you looking for?</p>
+    <form class="ui form" action="/search" method="get">
+        <div class="field">
+
+            <label style="font-size: 18px;">Name</label>
+            {% if response.get("wanted_name") %}
+                <input type="text" name="name" value="{{ response.get('wanted_name') }}"><br><br>
+            {% else %}
+                <input type="text" name="name" placeholder="Enter name..."><br><br>
+            {% endif %}
+
+            <label style="font-size: 18px;">Min Price</label>
+            {% if response.get("wanted_min_price") %}
+                <input type="number" name="min_price" value="{{ response.get('wanted_min_price') }}"><br><br>
+            {% else %}
+                <input type="number" name="min_price" placeholder="Enter min price..."><br><br>
+            {% endif %}
+
+            <label style="font-size: 18px;">Max Price</label>
+            {% if response.get("wanted_max_price") %}
+                <input type="number" name="max_price" value="{{ response.get('wanted_max_price') }}"><br><br>
+            {% else %}
+                <input type="number" name="max_price" placeholder="Enter max price..."><br><br>
+            {% endif %}
+
+            <label class="choice" style="font-size: 18px;">
+                {% if response.get("wanted_type") == "SMARTPHONE" %}
+                    <input type="radio" name="it_type" value="SMARTPHONE" checked="checked"/> Smartphone
+                {% else %}
+                    <input type="radio" name="it_type" value="SMARTPHONE"> Smartphone
+                {% endif %}
+            </label>
+            <label class="choice" style="font-size: 18px;">
+                {% if response.get("wanted_type") == "TV" %}
+                    <input type="radio" name="it_type" value="TV" checked="checked"/> TV
+                {% else %}
+                    <input type="radio" name="it_type" value="TV"> TV
+                {% endif %}
+            </label>
+            <label class="choice" style="font-size: 18px;">
+                {% if response.get("wanted_type") == "LAPTOP" %}
+                    <input type="radio" name="it_type" value="LAPTOP" checked="checked"/> Laptop
+                {% else %}
+                    <input type="radio" name="it_type" value="LAPTOP"> Laptop
+                {% endif %}
+            </label>
+        </div>
+
+        <button class="ui blue button" type="submit">Search Item</button>
+    </form>
+
+    <br>
+    <hr>
+{% endblock %}
+
+{% block add_button %}
+    <div class="ui segment">
+        <a class="ui blue button" href="/add/">Add Item</a>
+    </div>
+{% endblock %}
+
+{% block item_list %}
+    <div>
+        {% if response.get("action") == "/search/" %}
+            <p style="font-size: 18px; text-align:center;">
+                {{ response.get("items_count") }} items found on {{ response.get("pages_amt") }} pages</p>
+        {% else %}
+            <p style="font-size: 18px; text-align:center;">
+                {{ response.get("items_count") }} items are available in the store on {{ response.get("pages_amt") }} pages</p>
+        {% endif %}
+
+        {% for item in response.get("items") %}
+        <div class="ui segment" style="float: left; margin: 2px; background-color:#F5F5F5;">
+            <p class="ui big header">{{ item.id }} | {{ item.name }} | {{ item.it_type.name }} | {{ item.price }} rubles</p>
+            <img
+                    src="{{ item.photo_url }}"
+                    width="340px"
+                    height="200px"
+            >
+
+            <div>
+                <form class="ui form" action="/delete/{{ item.id }}" method="post" style="float: left; padding: 5px;">
+                    <button class="ui red button" type="submit">Delete</button>
+                </form>
+                <form class="ui form" action="/update/{{ item.id }}" method="get" style="float: left; padding: 5px;">
+                    <button class="ui blue button" type="submit">Update</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div>
+        {% if response.get("pagination").get("prev") %}
+            <form class="ui form"
+                  action="{{ response.get('action') }}"
+                  method="get"
+                  style="float: left; padding: 5px;">
+                <input type="hidden"
+                    name="page_num"
+                    value="{{ response.get('pagination').get('prev') }}">
+                {% if response.get("action") == "/search/" %}
+                    {% if response.get('wanted_name') %}
+                        <input type="hidden" name="name" value="{{ response.get('wanted_name') }}">
+                    {% endif %}
+                    {% if response.get('wanted_type') %}
+                        <input type="hidden" name="it_type" value="{{ response.get('wanted_type') }}">
+                    {% endif %}
+                    {% if response.get('wanted_price') %}
+                        <input type="hidden" name="price" value="{{ response.get('wanted_price') }}">
+                    {% endif %}
+                {% endif %}
+                <button class="ui blue button" type="submit">Previous Page</button>
+            </form>
+        {% endif %}
+
+        {% if response.get("pagination").get("next") %}
+            <form
+                  action="{{ response.get('action') }}"
+                  method="get"
+                  style="float: left; padding: 5px;">
+                <input type="hidden"
+                    name="page_num"
+                    value="{{ response.get('pagination').get('next') }}">
+                {% if response.get("action") == "/search/" %}
+                    {% if response.get('wanted_name') %}
+                        <input type="hidden" name="name" value="{{ response.get('wanted_name') }}">
+                    {% endif %}
+                    {% if response.get('wanted_type') %}
+                        <input type="hidden" name="it_type" value="{{ response.get('wanted_type') }}">
+                    {% endif %}
+                    {% if response.get('wanted_price') %}
+                        <input type="hidden" name="price" value="{{ response.get('wanted_price') }}">
+                    {% endif %}
+                {% endif %}
+                <button class="ui blue button" type="submit">Next Page</button>
+            </form>
+        {% endif %}
+    </div>
+
+{% endblock %}

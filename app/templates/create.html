@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}
+    <title>Electronics Store: create</title>
+{% endblock %}
+
+{% block create %}
+
+<p class="ui center aligned header" style="font-size: 22px;">Create Item</p>
+
+<form class="ui form" action="/add" method="post" enctype="multipart/form-data">
+    <div class="field">
+        <label style="font-size: 16px;">Name</label>
+        <input type="text" name="name" placeholder="Enter name..."><br><br>
+
+        <label style="font-size: 16px;">Price</label>
+        <input type="number" name="price" placeholder="Enter price..."><br><br>
+
+        <label class="choice" style="font-size: 16px;">
+            <input type="radio" name="it_type" value="SMARTPHONE"> Smartphone
+        </label>
+        <label class="choice" style="font-size: 16px;">
+            <input type="radio" name="it_type" value="TV"> TV
+        </label>
+        <label class="choice" style="font-size: 16px;">
+            <input type="radio" name="it_type" value="LAPTOP"> Laptop <br><br>
+        </label>
+
+        <label style="font-size: 14px;" for="myfile">Select a photo:</label>
+        <input type="file" id="myfile" name="photo">
+    </div>
+
+    <button class="ui blue button" type="submit">Add</button>
+</form>
+<br>
+<hr>
+
+{% endblock %}

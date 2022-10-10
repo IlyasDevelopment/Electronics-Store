@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}
+    <title>Electronics Store: update</title>
+{% endblock %}
+
+{% block update %}
+<p class="ui center aligned header" style="font-size: 22px;">Update Item</p>
+
+<form class="ui form" action="/update/{{ item.id }}" method="post" enctype="multipart/form-data">
+    <div class="field">
+
+        <label style="font-size: 18px;">Name</label>
+        <input type="text" name="name" value="{{ item.name }}"><br><br>
+
+        <label style="font-size: 18px;">Price</label>
+        <input type="number" name="price" value="{{ item.price }}"><br><br>
+
+
+        <label class="choice" style="font-size: 18px;">
+            {% if item.it_type.name == "SMARTPHONE" %}
+                <input type="radio" name="it_type" value="SMARTPHONE" checked="checked"/> Smartphone
+            {% else %}
+                <input type="radio" name="it_type" value="SMARTPHONE"> Smartphone
+            {% endif %}
+        </label>
+        <label class="choice" style="font-size: 18px;">
+            {% if item.it_type.name == "TV" %}
+                <input type="radio" name="it_type" value="TV" checked="checked"/> TV
+            {% else %}
+                <input type="radio" name="it_type" value="TV"> TV
+            {% endif %}
+        </label>
+        <label class="choice" style="font-size: 18px;">
+            {% if item.it_type.name == "LAPTOP" %}
+                <input type="radio" name="it_type" value="LAPTOP" checked="checked"/> Laptop
+            {% else %}
+                <input type="radio" name="it_type" value="LAPTOP"> Laptop
+            {% endif %}
+        </label>
+
+        <div class="ui segment">
+            <img src="{{ item.photo_url }}" style="width:340px;height:200px;">
+        </div>
+
+        <label style="font-size: 14px;" for="myfile">Select a photo:</label>
+        <input type="file" id="myfile" name="photo">
+
+    </div>
+    <button class="ui blue button" type="submit">Update Item</button>
+</form>
+{% endblock %}

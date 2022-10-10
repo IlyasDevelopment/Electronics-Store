@@ -81,7 +81,7 @@
 
         {% for item in response.get("items") %}
         <div class="ui segment" style="float: left; margin: 2px; background-color:#F5F5F5;">
-            <p class="ui big header">{{ item.id }} | {{ item.name }} | {{ item.it_type.name }} | {{ item.price }} rubles</p>
+            <p class="ui big header">{{ item.name }} | {{ item.it_type.name }} | {{ item.price }} rubles</p>
             <img
                     src="{{ item.photo_url }}"
                     width="340px"

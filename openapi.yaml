@@ -27,17 +27,18 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/Home_resp'
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /add/:
+  /add:
     get:
       summary: Add Get
-      operationId: add_get_add__get
+      operationId: add_get_add_get
       responses:
         '200':
           description: Successful Response
@@ -46,29 +47,30 @@ paths:
               schema: {}
     post:
       summary: Add Post
-      operationId: add_post_add__post
+      operationId: add_post_add_post
       requestBody:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Body_add_post_add__post'
+              $ref: '#/components/schemas/Item'
         required: true
       responses:
-        '200':
-          description: Successful Response
+        '303':
+          description: See Other
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/Home_resp'
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /update/{item_id}/:
+  /update/{item_id}:
     get:
       summary: Update Get
-      operationId: update_get_update__item_id___get
+      operationId: update_get_update__item_id__get
       parameters:
         - required: true
           schema:
@@ -79,6 +81,12 @@ paths:
       responses:
         '200':
           description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '404':
+          description: Not Found
           content:
             application/json:
               schema: {}
@@ -90,7 +98,7 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
     post:
       summary: Update Post
-      operationId: update_post_update__item_id___post
+      operationId: update_post_update__item_id__post
       parameters:
         - required: true
           schema:
@@ -102,14 +110,15 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Body_update_post_update__item_id___post'
+              $ref: '#/components/schemas/Item'
         required: true
       responses:
-        '200':
-          description: Successful Response
+        '302':
+          description: Found
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/Home_resp'
         '422':
           description: Validation Error
           content:
@@ -128,8 +137,14 @@ paths:
           name: item_id
           in: path
       responses:
-        '200':
-          description: Successful Response
+        '302':
+          description: Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Home_resp'
+        '404':
+          description: Not Found
           content:
             application/json:
               schema: {}
@@ -139,10 +154,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /search/:
+  /search:
     get:
       summary: Find Items
-      operationId: find_items_search__get
+      operationId: find_items_search_get
       parameters:
         - required: false
           schema:
@@ -178,12 +193,20 @@ paths:
             default: 1
           name: page_num
           in: query
+        - required: false
+          schema:
+            title: Page Size
+            type: integer
+            default: 9
+          name: page_size
+          in: query
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/Search_resp'
         '422':
           description: Validation Error
           content:
@@ -192,13 +215,66 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
-    Body_add_post_add__post:
-      title: Body_add_post_add__post
+    Home_resp:
+      title: Home Response
+      required:
+        - items
+        - pagination
+        - pages_amt
+        - items_count
+        - action
+      type: object
+      properties:
+        items:
+          title: Items
+          type: array
+          items:
+            $ref: '#/components/schemas/Item'
+        pagination:
+          title: Pagination
+          type: object
+          properties:
+            next:
+              type: integer
+            prev:
+              type: integer
+        pages_amt:
+          title: Pages amount
+          type: integer
+        items_count:
+          title: Items count
+          type: integer
+        action:
+          title: Action
+          type: string
+    Search_resp:
+      title: Search Response
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Home_resp'
+        - type: string
+          properties:
+            wanted_name:
+              type: string
+        - type: string
+          properties:
+            wanted_min_price:
+              type: string
+        - type: string
+          properties:
+            wanted_max_price:
+              type: string
+        - type: string
+          properties:
+            wanted_type:
+              $ref: '#/components/schemas/ItType'
+    Item:
+      title: Item
       required:
         - name
         - it_type
         - price
-        - photo
+        - photo_url
       type: object
       properties:
         name:
@@ -209,28 +285,7 @@ components:
         price:
           title: Price
           type: integer
-        photo:
-          title: Photo
-          type: string
-          format: binary
-    Body_update_post_update__item_id___post:
-      title: Body_update_post_update__item_id___post
-      required:
-        - name
-        - it_type
-        - price
-        - photo
-      type: object
-      properties:
-        name:
-          title: Name
-          type: string
-        it_type:
-          $ref: '#/components/schemas/ItType'
-        price:
-          title: Price
-          type: integer
-        photo:
+        photo_url:
           title: Photo
           type: string
           format: binary

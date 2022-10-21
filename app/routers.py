@@ -3,12 +3,13 @@ from aws import get_link
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile, status
 from fastapi_sqlalchemy import db
 
-from models import Item
-from models import Item as ModelItem
-from models import ItType
+from helpers import make_pagination_links
+
+from models import ItType, Item
 
 from starlette.responses import RedirectResponse
 from starlette.templating import Jinja2Templates
+from sqlalchemy import desc, func
 
 from typing import Optional, Union
 
@@ -21,32 +22,22 @@ templates = Jinja2Templates(directory="templates")
 @router.get("/")
 def home(request: Request, page_num: int = 1, page_size: int = 9):
 
-    start = (page_num - 1) * page_size
-    end = start + page_size
+    items = db.session.query(Item)\
+        .order_by(desc(Item.id))\
+        .limit(page_size)\
+        .offset((page_num-1)*page_size)
 
-    items = db.session.query(Item).all()[::-1]
-    items_len = len(items)
-
-    items = items[start:end]
+    items_len = db.session.query(Item.id).count()
 
     response = {
         "items": items,
         "pagination": {},
-        "pages_amt": items_len // page_size + 1
+        "pages_amt": items_len // page_size + 1,
+        "items_count": items_len,
+        "action": "/"
     }
 
-    if page_num > 1:
-        response["pagination"]["prev"] = page_num - 1
-    else:
-        response["pagination"]["prev"] = None
-
-    if end >= items_len:
-        response["pagination"]["next"] = None
-    else:
-        response["pagination"]["next"] = page_num + 1
-
-    response["action"] = "/"
-    response["items_count"] = items_len
+    make_pagination_links(response, page_num, page_size, items_len)
 
     return templates.TemplateResponse("index.html",
                                       {
@@ -55,7 +46,7 @@ def home(request: Request, page_num: int = 1, page_size: int = 9):
                                       })
 
 
-@router.get("/add/")
+@router.get("/add")
 def add_get(request: Request):
     return templates.TemplateResponse("create.html",
                                       {
@@ -63,18 +54,20 @@ def add_get(request: Request):
                                       })
 
 
-@router.post("/add/")
+@router.post("/add")
 def add_post(
         name: str = Form(...),
         it_type: ItType = Form(...),
         price: int = Form(...),
         photo: UploadFile = File(...),
 ):
-    # def add(item_sch: SchemaItem = Form(...), photo: UploadFile = File(...)):
 
-    photo_url = get_link(photo)
+    if photo.filename:
+        photo_url = get_link(photo)
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
-    db_item = ModelItem(
+    db_item = Item(
         name=name,
         it_type=it_type,
         price=price,
@@ -89,7 +82,7 @@ def add_post(
     return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
 
-@router.get("/update/{item_id}/")
+@router.get("/update/{item_id}")
 def update_get(request: Request, item_id: int):
 
     try:
@@ -104,7 +97,7 @@ def update_get(request: Request, item_id: int):
                                       })
 
 
-@router.post("/update/{item_id}/")
+@router.post("/update/{item_id}")
 def update_post(
         item_id: int,
         name: str = Form(...),
@@ -112,7 +105,6 @@ def update_post(
         price: int = Form(...),
         photo: UploadFile = File(...),
 ):
-    # def update(item_sch: SchemaItem = Form(...), photo: UploadFile = File(...)):
 
     if photo.filename:
         photo_url = get_link(photo)
@@ -156,21 +148,25 @@ def delete(item_id: int):
     return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
 
 
-@router.get("/search/")
+@router.get("/search")
 def find_items(
         request: Request,
         name: Optional[str] = None,
         it_type: Optional[ItType] = None,
         min_price: Optional[Union[int, str]] = None,
         max_price: Optional[Union[int, str]] = None,
-        page_num: int = 1
+        page_num: int = 1,
+        page_size: int = 9
         ):
 
     all_filters = []
-    response = {}
+    response = {
+        "pagination": {},
+        "action": "/search"
+    }
 
     if name:
-        all_filters.append(Item.name.contains(name))
+        all_filters.append(func.lower(Item.name).contains(name.lower()))
         response["wanted_name"] = name
     if min_price:
         all_filters.append(Item.price >= min_price)
@@ -182,29 +178,19 @@ def find_items(
         all_filters.append(Item.it_type == it_type)
         response["wanted_type"] = it_type.name
 
-    page_size = 9
-    start = (page_num - 1) * page_size
-    end = start + page_size
+    items = db.session.query(Item)\
+        .filter(*all_filters)\
+        .order_by(desc(Item.id))\
+        .limit(page_size)\
+        .offset((page_num-1)*page_size)
 
-    items = db.session.query(Item).filter(*all_filters).all()
-    items_len = len(items)
-    items = items[start:end]
+    items_len = db.session.query(Item).filter(*all_filters).count()
 
     response["items"] = items
     response["items_count"] = items_len
     response["pages_amt"] = items_len // page_size + 1
-    response["action"] = "/search/"
-    response["pagination"] = {}
 
-    if page_num > 1:
-        response["pagination"]["prev"] = page_num - 1
-    else:
-        response["pagination"]["prev"] = None
-
-    if end >= items_len:
-        response["pagination"]["next"] = None
-    else:
-        response["pagination"]["next"] = page_num + 1
+    make_pagination_links(response, page_num, page_size, items_len)
 
     return templates.TemplateResponse("index.html",
                                       {

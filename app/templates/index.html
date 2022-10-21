@@ -71,7 +71,7 @@
 
 {% block item_list %}
     <div>
-        {% if response.get("action") == "/search/" %}
+        {% if response.get("action") == "/search" %}
             <p style="font-size: 18px; text-align:center;">
                 {{ response.get("items_count") }} items found on {{ response.get("pages_amt") }} pages</p>
         {% else %}
@@ -109,7 +109,7 @@
                 <input type="hidden"
                     name="page_num"
                     value="{{ response.get('pagination').get('prev') }}">
-                {% if response.get("action") == "/search/" %}
+                {% if response.get("action") == "/search" %}
                     {% if response.get('wanted_name') %}
                         <input type="hidden" name="name" value="{{ response.get('wanted_name') }}">
                     {% endif %}
@@ -132,7 +132,7 @@
                 <input type="hidden"
                     name="page_num"
                     value="{{ response.get('pagination').get('next') }}">
-                {% if response.get("action") == "/search/" %}
+                {% if response.get("action") == "/search" %}
                     {% if response.get('wanted_name') %}
                         <input type="hidden" name="name" value="{{ response.get('wanted_name') }}">
                     {% endif %}
